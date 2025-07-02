@@ -3,7 +3,6 @@ struct Header {
   char content_type[32];
 };
 
-
 typedef enum {
   JSON_NULL,
   JSON_BOOL,
@@ -12,6 +11,32 @@ typedef enum {
   JSON_ARRAY,
   JSON_OBJECT,
 } JsonSpec;
+
+typedef struct JsonValue JsonValue;
+
+typedef struct {
+  char      *key;
+  JsonValue *value;
+} JsonPair;
+
+struct JsonValue {
+ JsonSpec type;
+ union {
+   int    jbool;
+   double jnum;
+   char   *jstr;
+
+   struct {
+     JsonValue **jvals;
+     int       count;
+   } j_array;
+
+   struct {
+     JsonPair *pairs;
+     int      count;
+   } j_object;
+ } json;
+};
 
 typedef enum {
   PARSE_ERROR                        = -32700,
@@ -30,27 +55,6 @@ typedef enum {
   REQUEST_CANCELLED                  = -32800,
   LSP_RESERVED_ERROR_RANGE_END       = -32800,
 } LSPErrorCodes;
-
-typedef struct JsonValue JsonValue;
-
-struct JsonValue {
- JsonSpec value;
- union {
-   int    jbool;
-   double jnum;
-   char   *jstr;
-
-   struct {
-     JsonValue **jvals;
-     int       count;
-   } j_array;
-
-   struct {
-     char      **keys;
-     JsonValue **jvals;
-   } j_object;
- } json;
-};
 
 typedef enum { 
   ID_NULL, 
@@ -116,3 +120,9 @@ typedef struct {
   // haven't yet figured out how to do that :)
   int value;
 } LSPProgressParams;
+
+JRPCRequest* jrpc_parse_request(const char *json_text);
+char*        jrpc_serialize_response(const JRPCResponse *r);
+void         jrpc_free_request(JRPCRequest *r);
+void         jrpc_free_response(JRPCResponse *r);
+
