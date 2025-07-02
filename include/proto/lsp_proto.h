@@ -1,6 +1,6 @@
 struct Header {
-  int content_length;
-  char content_type[];
+  int  content_length;
+  char content_type[32];
 };
 
 
@@ -14,45 +14,59 @@ typedef enum {
 } JsonSpec;
 
 typedef enum {
-  PARSE_ERROR = -32700,
-  INVALID_REQUEST = -32600,
-  METHOD_NOT_FOUND = -32601,
-  INVALID_PARAMS = -32602,
-  INTERNAL_ERROR = -32603,
-  JSONRPC_RESERVED_ERROR_RANGE_START = -320999,
-  JSONRPC_RESERVED_ERROR_RANGE_END = -32000,
-  SERVER_NOT_INITIALIZED = -32002,
-  UNKNOWN_ERROR_CODE = -32001,
-  LSP_RESERVED_ERROR_RANGE_START = -32899,
-  REQUEST_FAILED = -32803,
-  SERVER_CANCELLED = -32802,
-  CONTENT_MODIFIED = -32801,
-  REQUEST_CANCELLED = -32800,
-  LSP_RESERVED_ERROR_RANGE_END = -32800,
+  PARSE_ERROR                        = -32700,
+  INVALID_REQUEST                    = -32600,
+  METHOD_NOT_FOUND                   = -32601,
+  INVALID_PARAMS                     = -32602,
+  INTERNAL_ERROR                     = -32603,
+  JSONRPC_RESERVED_ERROR_RANGE_START = -32099,
+  JSONRPC_RESERVED_ERROR_RANGE_END   = -32000,
+  SERVER_NOT_INITIALIZED             = -32002,
+  UNKNOWN_ERROR_CODE                 = -32001,
+  LSP_RESERVED_ERROR_RANGE_START     = -32899,
+  REQUEST_FAILED                     = -32803,
+  SERVER_CANCELLED                   = -32802,
+  CONTENT_MODIFIED                   = -32801,
+  REQUEST_CANCELLED                  = -32800,
+  LSP_RESERVED_ERROR_RANGE_END       = -32800,
 } LSPErrorCodes;
 
 typedef struct JsonValue JsonValue;
 
 struct JsonValue {
  JsonSpec value;
-
  union {
-   int jbool;
+   int    jbool;
    double jnum;
-   char *jstr;
+   char   *jstr;
 
    struct {
-     struct JsonValue **jvals;
-     int count;
+     JsonValue **jvals;
+     int       count;
    } j_array;
 
    struct {
-     char **keys;
-     struct JsonValue **jvals;
+     char      **keys;
+     JsonValue **jvals;
    } j_object;
  } json;
-
 };
+
+typedef enum { 
+  ID_NULL, 
+  ID_NUM, 
+  ID_STR 
+} JRPCIDKind;
+
+typedef struct {
+  JRPCIDKind id_kind;
+
+  union {
+    double num;
+    char   *str;
+  } id_value;
+} JRPCid;
+
 
 typedef struct {
  LSPErrorCodes code;
@@ -60,18 +74,15 @@ typedef struct {
  JsonValue data;
 } JRPCError;
 
-typedef struct {} JRPCResult;
+typedef struct {
+  JsonValue result;
+} JRPCResult;
 
 typedef struct {
   char *jsonrpc;
   char *method;
-  
-  union {
-    char *id_str;
-    double *id_num;
-    int id_null;
-  } id;
-
+  JRPCid id; 
+  JsonValue params;
 } JRPCRequest;
 
 typedef struct {
@@ -79,13 +90,29 @@ typedef struct {
 
   union {
     JRPCResult result;
-    JRPCError error;
+    JRPCError  error;
   } response;
-
-  union {
-    char *id_str;
-    double *id_num;
-    int id_null;
-  } id;
-
+  JRPCid id;
 } JRPCResponse;
+
+typedef struct {
+  char      *method;
+  JsonValue params;
+} LSPNotificationMessage;
+
+typedef struct {
+  union {
+    int  id_num;
+    char *id_str;
+  } id;
+} LSPCancelParams;
+
+typedef struct {
+  union {
+    int  token_num;
+    char *token_str;
+  } progress_token;
+  // ideally this should be any value for now but I
+  // haven't yet figured out how to do that :)
+  int value;
+} LSPProgressParams;
