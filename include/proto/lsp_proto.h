@@ -1,8 +1,3 @@
-struct Header {
-  int  content_length;
-  char content_type[32];
-};
-
 typedef enum {
   JSON_NULL,
   JSON_BOOL,
@@ -37,6 +32,13 @@ struct JsonValue {
    } j_object;
  } json;
 };
+
+typedef enum {
+  LSP_REQUEST,
+  LSP_RESPONSE,
+  LSP_NOTIFICATION,
+
+} LspMessageType;
 
 typedef enum {
   PARSE_ERROR                        = -32700,
@@ -86,18 +88,25 @@ typedef struct {
   char *jsonrpc;
   char *method;
   JRPCid id; 
-  JsonValue params;
+  union {
+    JsonValue value;
+    void* empty;
+  } params;
 } JRPCRequest;
 
 typedef struct {
   char *jsonrpc;
-
   union {
     JRPCResult result;
     JRPCError  error;
   } response;
   JRPCid id;
 } JRPCResponse;
+
+typedef struct {
+  int  content_length;
+  char content_type[32];
+} LSPHeader;
 
 typedef struct {
   char      *method;
@@ -121,9 +130,23 @@ typedef struct {
   int value;
 } LSPProgressParams;
 
+typedef struct {
+  LSPHeader header;
+  LspMessageType type;
+  union {
+    JRPCRequest            request;
+    JRPCResponse           response;
+    LSPProgressParams      progress_params;
+    LSPCancelParams        cancel_params;
+    LSPNotificationMessage notification_message;
+  } value;
+} LSPMessage;
+
 JRPCRequest* jrpc_parse_request(const char *json_text);
 char*        jrpc_serialize_response(const JRPCResponse *res);
 char*        jrpc_serialize_request(const JRPCRequest *req);
 void         jrpc_free_request(JRPCRequest *r);
 void         jrpc_free_response(JRPCResponse *r);
+void         lsp_serialize_message(LSPMessage *message);
+LSPMessage*  lsp_parse_message(const char *text);
 
