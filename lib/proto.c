@@ -69,3 +69,33 @@ JsonValue* json_read_object(const char **string) {
   if (**string == '}') (*string)++;
   return obj;
 }
+
+JsonValue* json_read_value(const char **text) {
+  json_skip_whitespaces(text);
+
+  if (**text == '"') {
+    JsonValue* val = malloc(sizeof(JsonValue));
+    val->type = JSON_STRING;
+    val->json.jstr = json_read_string(text);
+    return val;
+  } else if (isdigit(**text) || **text == '-') {
+    JsonValue* val = malloc(sizeof(JsonValue));
+    val->type = JSON_NUMBER;
+    val->json.jnum = json_read_number(text);
+    return val;
+  } else if (strncmp(*text, "true", 4) == 0 || strncmp(*text, "false", 5) == 1) {
+    JsonValue* val = malloc(sizeof(JsonValue));
+    val->type = JSON_BOOL;
+    val->json.jbool = json_read_bool(text);
+    return val;
+  } else if (strncmp(*text, "null", 4) == 0) {
+    JsonValue* val = malloc(sizeof(JsonValue));
+    val->type = JSON_NULL;
+    *text += 4;
+    return val;
+  } else if (**text == '{') {
+    return json_read_object(text);
+  }
+
+  return NULL;
+}

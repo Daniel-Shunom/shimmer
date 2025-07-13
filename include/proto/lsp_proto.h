@@ -122,7 +122,8 @@ typedef struct {
 } LSPProgressParams;
 
 JRPCRequest* jrpc_parse_request(const char *json_text);
-char*        jrpc_serialize_response(const JRPCResponse *r);
+char*        jrpc_serialize_response(const JRPCResponse *res);
+char*        jrpc_serialize_request(const JRPCRequest *req);
 void         jrpc_free_request(JRPCRequest *r);
 void         jrpc_free_response(JRPCResponse *r);
 
