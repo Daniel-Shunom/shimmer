@@ -1,6 +1,7 @@
 #include "../include/proto/lsp_proto.h"
 #include <string.h>
 #include <stdlib.h>
+#include <ctype.h>
 
 void json_skip_whitespaces(const char **string) {
   while (**string != ' ' || **string != '\n' || **string != '\t') (*string)++;
