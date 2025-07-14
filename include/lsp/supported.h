@@ -208,4 +208,112 @@ typedef struct {
   ChangeAnnotationIdentifier* annotation_id;
 } RenameFile;
 
+typedef struct {
+  bool* recursive;
+  bool* ignore_if_file_not_exists;
+} DeleteFileOptions;
+
+typedef struct {
+  const char* kind;
+  DocumentUri uri;
+  DeleteFileOptions* options;
+  ChangeAnnotationIdentifier* annotation_id;
+} DeleteFile;
+
+typedef struct {
+  DocumentUri uri;
+  TextEdit* text_edits;
+  uint32_t count;
+} ChangesEntry;
+
+typedef struct {
+  ChangesEntry* entries;
+  uint32_t count;
+} ChangesMap;
+
+typedef struct {
+  TextDocumentEdit* edits;
+  uint32_t count;
+} TextDocumentEditArray;
+
+typedef enum {
+  EDIT_KIND_TEXT_DOC,
+  EDIT_KIND_CREATE_FILE,
+  EDIT_KIND_DELETE_FILE,
+  EDIT_KIND_RENAME_FILE,
+} EditKind;
+
+typedef union {
+  TextDocumentEdit txt_doc_edit;
+  CreateFile       create_file;
+  RenameFile       rename_file;
+  DeleteFile       delete_file;
+} OtherEditUnion;
+
+typedef struct {
+  EditKind kind;
+  OtherEditUnion edit;
+} OtherEdit;
+
+typedef struct {
+  OtherEdit* edit;
+  uint32_t count;
+} OtherEditArray;
+
+typedef union {
+  TextDocumentEditArray text_doc_edits;
+  OtherEditArray other_edits;
+} DocumentChangesUnion;
+
+typedef struct {
+  DocumentChangesUnion* entries;
+  uint32_t count;
+} DocumentChangesArray;
+
+typedef struct {
+  char* id;
+  ChangeAnnotation value;
+} ChangeAnnotationsEntry;
+
+typedef struct {
+  ChangeAnnotationsEntry* entries;
+  uint32_t count;
+} ChangeAnnotationArray;
+
+typedef struct {
+  TextDocumentEditArray* changes;
+  DocumentChangesArray*  document_changes;
+  ChangeAnnotationArray* change_annotation;
+} WorkspaceEdit;
+
+typedef enum {
+  CREATE,
+  RENAME,
+  DELETE,
+} ResourceOperationType;
+
+typedef struct {
+  ResourceOperationType type;
+  const char* kind;
+} ResourceOperationKind;
+
+typedef enum {
+  ABORT,
+  TRANSACTIONAL,
+  UNDO,
+  TEXT_ONLY_TRANSACTIONAL,
+} FailureHandlingType;
+
+typedef struct {
+  FailureHandlingType type;
+  const char* kind;
+} FailureHandlingKind;
+
+typedef struct {
+  bool* document_changes;
+  ResourceOperationKind* resource_operation_kind;
+  FailureHandlingKind* failure_handling_kind;
+  bool* normalizes_line_endings;
+  bool* groups_on_label;
+} WorkspaceEditClientCapabilities;
 
